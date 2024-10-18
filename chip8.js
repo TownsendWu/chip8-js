@@ -154,19 +154,54 @@ class Chip8 {
         const x = opcode & 0x0F00
         const y = opcode & 0x00F0
         switch (opcode & 0x000F) {
-            case 0x000:
+            case 0x0000:
                 this.V[x] = this.V[y]
                 break;
-            case 0x001:
+            case 0x0001:
                 this.V[x] |= this.V[y]
                 break;
-            case 0x002:
+            case 0x0002:
                 this.V[x] &= this.V[y]
                 break;
-            case 0x003:
+            case 0x0003:
                 this.V[x] ^= this.V[y]
                 break;
-            case 0x004:
+            case 0x0004:
+                const sum = this.V[x] + this.V[y]
+                if (sum > 0xFF) {
+                    this.V[0xF] = 1
+                } else {
+                    this.V[0xF] = 1
+                }
+                this.V[x] = sum & 0xFF;
+                break;
+            case 0x0005:
+                if (this.V[x] > this.V[y]) {
+                    this.V[0xF] = 1;
+                } else {
+                    this.V[0xF] = 0;
+                }
+                this.V[x] = (this.V[x] - this.V[y]) & 0xFF;
+                break;
+            case 0x0006:
+                const sum = this.V[x] + this.V[y]
+                if (sum > 0xFF) {
+                    this.V[0xF] = 1
+                } else {
+                    this.V[0xF] = 1
+                }
+                this.V[x] = sum & 0xFF;
+                break;
+            case 0x0007:
+                const sum = this.V[x] + this.V[y]
+                if (sum > 0xFF) {
+                    this.V[0xF] = 1
+                } else {
+                    this.V[0xF] = 1
+                }
+                this.V[x] = sum & 0xFF;
+                break;
+            case 0x000E:
                 const sum = this.V[x] + this.V[y]
                 if (sum > 0xFF) {
                     this.V[0xF] = 1
@@ -176,11 +211,10 @@ class Chip8 {
                 this.V[x] = sum & 0xFF;
                 break;
             default:
-                console.error(`handle0NNN - Unknown opcode [0x0000]: 0x${opcode.toString(16)}`)
+                console.error(`handle8NNN - Unknown opcode [0x8000]: 0x${opcode.toString(16)}`)
                 break;
         }
         this.pc += 2
-
     }
 
 }

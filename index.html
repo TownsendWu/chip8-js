@@ -1,18 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chip-8 Emulator</title>
+    <title>CHIP-8.js</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <style>
+        body {
+            background-color: #222225;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .terminal {
+            width: 660px;
+            /* 640 + 20px padding */
+            height: 370px;
+            /* 320 + 50px header + 20px padding */
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 5px 10px;
+            background-color: #333;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .terminal-header .button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .button.close {
+            background-color: #ff5f56;
+        }
+
+        .button.minimize {
+            background-color: #ffbd2e;
+        }
+
+        .button.maximize {
+            background-color: #27c93f;
+        }
+
+        .terminal-content {
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+        }
+
         canvas {
-            border: 1px solid black;
+            width: 640px;
+            height: 320px;
+            background-color: #1e1e1e;
         }
     </style>
 </head>
-<body>
-    <canvas id="chip8-canvas" width="640" height="320"></canvas>
-    <script src="chip8.js"></script>
-</body>
-</html>
 
+<body>
+    <div class="terminal">
+        <div class="terminal-header">
+            <div class="button close"></div>
+            <div class="button minimize"></div>
+            <div class="button maximize"></div>
+        </div>
+        <div class="terminal-content">
+            <canvas id="terminalCanvas" width="640" height="320"></canvas>
+        </div>
+    </div>
+</body>
+
+</html>
