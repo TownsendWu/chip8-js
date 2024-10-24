@@ -23,11 +23,15 @@ class Chip8 {
     this.ctx = this.canvas.getContext("2d");
     this.scale = scale ?? 1;
 
+    // Create an off-screen canvas for double buffering
+    this.offscreenCanvas = document.createElement("canvas");
+    this.offscreenCanvas.width = canvas.width;
+    this.offscreenCanvas.height = canvas.height;
+    this.offscreenCtx = this.offscreenCanvas.getContext("2d");
+
     this.setupKeyboardListeners();
     this.waitingForKey = false; // 是否在等待按键
     this.keyPressHandler = null; // 按键处理函数
-
-    this.loadFontset();
   }
 
   setupKeyboardListeners() {
@@ -70,21 +74,30 @@ class Chip8 {
     }
   }
   loadProgram(program) {
+    this.memory.fill(0);
+    this.display.fill(0);
+    this.V.fill(0);
+    this.I = 0;
+    this.pc = 0x200;
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.loadFontset();
     for (let i = 0; i < program.length; i++) {
       this.memory[0x200 + i] = program[i];
     }
   }
 
   draw() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.offscreenCtx.clearRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height);
     for (let i = 0; i < 64 * 32; i++) {
       const x = (i % 64) * this.scale;
       const y = Math.floor(i / 64) * this.scale;
       if (this.display[i] === 1) {
-        this.ctx.fillStyle = "white";
-        this.ctx.fillRect(x, y, this.scale, this.scale);
+        this.offscreenCtx.fillStyle = "rgba(232,233,237,1)";
+        this.offscreenCtx.fillRect(x, y, this.scale, this.scale);
       }
     }
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.drawImage(this.offscreenCanvas, 0, 0);
   }
 
   cycle() {
@@ -147,12 +160,13 @@ class Chip8 {
   handle0NNN(opcode) {
     switch (opcode & 0x0ff) {
       case 0x00e0:
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.display.fill(0);
         this.pc += 2;
         break;
       case 0x00ee:
         this.sp--;
-        this.pc = this.stack[this.sp] + 2;
+        this.pc = this.stack[this.sp];
         break;
       default:
         console.error(`handle0NNN - Unknown opcode [0x0000]: 0x${opcode.toString(16)}`);
@@ -304,6 +318,7 @@ class Chip8 {
     }
     this.pc += 2;
   }
+
   handleEXNN(opcode) {
     const x = (opcode & 0x0f00) >> 8;
     switch (opcode & 0x00ff) {
@@ -350,7 +365,7 @@ class Chip8 {
         this.soundTimer = this.V[x];
         break;
       case 0x1e:
-        this.I += this.V[x] & 0xfff;
+        this.I = (this.I + this.V[x]) & 0xfff;
         break;
       case 0x29:
         this.I = this.V[x] * 5;
@@ -379,3 +394,40 @@ class Chip8 {
     }
   }
 }
+
+const canvas = document.getElementById("chip8Canvas");
+const scale = 10;
+
+const chip8 = new Chip8(canvas, scale);
+
+// prettier-ignore
+const program = [
+//   0x00, 0xe0,
+  0x60, 0x00, // LD V0, 0x00   ; Set V0 to 0 (X coordinate)
+  0x61, 0x00, // LD V1, 0x00   ; Set V1 to 0 (Y coordinate)
+  0xA2, 0x0A, // LD I, 0x20A   ; Set I to the memory address 0x20A (where the font set is stored)
+  0xD0, 0x15, // DRW V0, V1, 5 ; Draw 5-byte sprite at (V0, V1)
+  0x12, 0x00, // JP 0x200      ; Jump to the start of the program (infinite loop)
+  0xF0, 0x90, 0xF0, 0x90, 0x90 // Font data for character "A"
+];
+
+function loop() {
+  chip8.cycle();
+  chip8.draw();
+  requestAnimationFrame(loop);
+}
+
+document.getElementById("fileInput").addEventListener("change", event => {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const arrayBuffer = e.target.result;
+      const romBuffer = new Uint8Array(arrayBuffer);
+      chip8.loadProgram(romBuffer);
+      // 启动模拟器主循环
+      requestAnimationFrame(loop);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+});
