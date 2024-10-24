@@ -526,49 +526,53 @@
         }
       }
 
-      const canvas = document.getElementById("chip8Canvas");
-      const scale = 10;
-      const chip8 = new Chip8(canvas, scale);
+      function main() {
+        const canvas = document.getElementById("chip8Canvas");
+        const scale = 10;
+        const chip8 = new Chip8(canvas, scale);
 
-      const targetFrequency = 500; // 500Hz
-      const interval = 1000 / targetFrequency; // 每次执行的间隔时间（毫秒）
+        const targetFrequency = 500; // 500Hz
+        const interval = 1000 / targetFrequency; // 每次执行的间隔时间（毫秒）
 
-      let lastTime = performance.now();
+        let lastTime = performance.now();
 
-      function executeChip8() {
-        const now = performance.now();
-        const deltaTime = now - lastTime;
-        lastTime = now;
+        function executeChip8() {
+          const now = performance.now();
+          const deltaTime = now - lastTime;
+          lastTime = now;
 
-        const cyclesPerFrame = Math.floor(deltaTime / interval);
+          const cyclesPerFrame = Math.floor(deltaTime / interval);
 
-        for (let i = 0; i < cyclesPerFrame; i++) {
-          chip8.cycle();
-        }
-      }
-
-      function render() {
-        chip8.draw();
-        requestAnimationFrame(render);
-      }
-
-      document
-        .getElementById("fileInput")
-        .addEventListener("change", (event) => {
-          const file = event.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              const arrayBuffer = e.target.result;
-              const romBuffer = new Uint8Array(arrayBuffer);
-              chip8.loadProgram(romBuffer);
-              // 启动模拟器主循环
-              setInterval(executeChip8, interval);
-              requestAnimationFrame(render);
-            };
-            reader.readAsArrayBuffer(file);
+          for (let i = 0; i < cyclesPerFrame; i++) {
+            chip8.cycle();
           }
-        });
+        }
+
+        function render() {
+          chip8.draw();
+          requestAnimationFrame(render);
+        }
+
+        document
+          .getElementById("fileInput")
+          .addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                const arrayBuffer = e.target.result;
+                const romBuffer = new Uint8Array(arrayBuffer);
+                chip8.loadProgram(romBuffer);
+                // 启动模拟器主循环
+                setInterval(executeChip8, interval);
+                requestAnimationFrame(render);
+              };
+              reader.readAsArrayBuffer(file);
+            }
+          });
+      }
+
+      main();
     </script>
   </body>
 </html>
