@@ -44,7 +44,7 @@ class Chip8 {
     };
 
     document.addEventListener("keydown", event => {
-      const key = keyMap[event.key];
+      const key = keyMap[event.key.toLowerCase()];
       if (key !== undefined) {
         this.keys[key] = true;
         if (this.waitingForKey && this.keyPressHandler) {
@@ -445,4 +445,4 @@ function main() {
   });
 }
 
-main()
+main();
