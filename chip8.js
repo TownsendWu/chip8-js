@@ -37,9 +37,10 @@ class Chip8 {
   setupKeyboardListeners() {
     // prettier-ignore
     const keyMap = {
-      1: 0x1,2: 0x2,3: 0x3,4: 0xc,q: 0x4,
-      w: 0x5,e: 0x6,r: 0xd,a: 0x7,s: 0x8,
-      d: 0x9,f: 0xe,z: 0xa,x: 0x0,c: 0xb,v: 0xf,
+      '1': 0x1,'2': 0x2,'3': 0x3,'4': 0xc,
+      'q': 0x4,'w': 0x5,'e': 0x6,'r': 0xd,
+      'a': 0x7,'s': 0x8,'d': 0x9,'f': 0xe,
+      'z': 0xa,'x': 0x0,'c': 0xb,'v': 0xf,
     };
 
     document.addEventListener("keydown", event => {
@@ -79,6 +80,11 @@ class Chip8 {
     this.V.fill(0);
     this.I = 0;
     this.pc = 0x200;
+    this.stack.fill(0);
+    this.sp = 0;
+    this.delayTimer = 0;
+    this.soundTimer = 0;
+    this.keys.fill(false);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.loadFontset();
     for (let i = 0; i < program.length; i++) {
