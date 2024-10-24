@@ -158,7 +158,7 @@
       d: 0x9,f: 0xe,z: 0xa,x: 0x0,c: 0xb,v: 0xf,
     };
 
-          document.addEventListener("keydown", event => {
+          document.addEventListener("keydown", (event) => {
             const key = keyMap[event.key];
             if (key !== undefined) {
               this.keys[key] = true;
@@ -168,7 +168,7 @@
             }
           });
 
-          document.addEventListener("keyup", event => {
+          document.addEventListener("keyup", (event) => {
             const key = keyMap[event.key];
             if (key !== undefined) {
               this.keys[key] = false;
@@ -178,12 +178,14 @@
 
         loadFontset() {
           const fontset = [
-            0xf0, 0x90, 0x90, 0x90, 0xf0, 0x20, 0x60, 0x20, 0x20, 0x70, 0xf0, 0x10, 0xf0, 0x80,
-            0xf0, 0xf0, 0x10, 0xf0, 0x10, 0xf0, 0x90, 0x90, 0xf0, 0x10, 0x10, 0xf0, 0x80, 0xf0,
-            0x10, 0xf0, 0xf0, 0x80, 0xf0, 0x90, 0xf0, 0xf0, 0x10, 0x20, 0x40, 0x40, 0xf0, 0x90,
-            0xf0, 0x90, 0xf0, 0xf0, 0x90, 0xf0, 0x10, 0xf0, 0xf0, 0x90, 0xf0, 0x90, 0x90, 0xe0,
-            0x90, 0xe0, 0x90, 0xe0, 0xf0, 0x80, 0x80, 0x80, 0xf0, 0xe0, 0x90, 0x90, 0x90, 0xe0,
-            0xf0, 0x80, 0xf0, 0x80, 0xf0, 0xf0, 0x80, 0xf0, 0x80, 0x80,
+            0xf0, 0x90, 0x90, 0x90, 0xf0, 0x20, 0x60, 0x20, 0x20, 0x70, 0xf0,
+            0x10, 0xf0, 0x80, 0xf0, 0xf0, 0x10, 0xf0, 0x10, 0xf0, 0x90, 0x90,
+            0xf0, 0x10, 0x10, 0xf0, 0x80, 0xf0, 0x10, 0xf0, 0xf0, 0x80, 0xf0,
+            0x90, 0xf0, 0xf0, 0x10, 0x20, 0x40, 0x40, 0xf0, 0x90, 0xf0, 0x90,
+            0xf0, 0xf0, 0x90, 0xf0, 0x10, 0xf0, 0xf0, 0x90, 0xf0, 0x90, 0x90,
+            0xe0, 0x90, 0xe0, 0x90, 0xe0, 0xf0, 0x80, 0x80, 0x80, 0xf0, 0xe0,
+            0x90, 0x90, 0x90, 0xe0, 0xf0, 0x80, 0xf0, 0x80, 0xf0, 0xf0, 0x80,
+            0xf0, 0x80, 0x80,
           ];
           for (let i = 0; i < fontset.length; i++) {
             this.memory[i] = fontset[i];
@@ -290,7 +292,9 @@
               this.pc = this.stack[this.sp];
               break;
             default:
-              console.error(`handle0NNN - Unknown opcode [0x0000]: 0x${opcode.toString(16)}`);
+              console.error(
+                `handle0NNN - Unknown opcode [0x0000]: 0x${opcode.toString(16)}`
+              );
               this.pc += 2;
               break;
           }
@@ -386,7 +390,9 @@
               this.V[x] = (this.V[y] << 1) & 0xff;
               break;
             default:
-              console.error(`handle8NNN - Unknown opcode [0x8000]: 0x${opcode.toString(16)}`);
+              console.error(
+                `handle8NNN - Unknown opcode [0x8000]: 0x${opcode.toString(16)}`
+              );
               break;
           }
           this.pc += 2;
@@ -458,7 +464,9 @@
               }
               break;
             default:
-              console.error(`Unknown opcode [0xE000]: 0x${opcode.toString(16)}`);
+              console.error(
+                `Unknown opcode [0xE000]: 0x${opcode.toString(16)}`
+              );
               this.pc += 2;
               break;
           }
@@ -472,7 +480,7 @@
               break;
             case 0x0a:
               this.waitingForKey = true;
-              this.keyPressHandler = key => {
+              this.keyPressHandler = (key) => {
                 this.V[x] = key;
                 this.waitingForKey = false;
                 this.keyPressHandler = null;
@@ -507,7 +515,9 @@
               }
               break;
             default:
-              console.error(`Unknown opcode [0xF000]: 0x${opcode.toString(16)}`);
+              console.error(
+                `Unknown opcode [0xF000]: 0x${opcode.toString(16)}`
+              );
               break;
           }
           if ((opcode & 0x00ff) !== 0x0a) {
@@ -520,26 +530,45 @@
       const scale = 10;
       const chip8 = new Chip8(canvas, scale);
 
-      function loop() {
-        chip8.cycle();
-        chip8.draw();
-        requestAnimationFrame(loop);
+      const targetFrequency = 500; // 500Hz
+      const interval = 1000 / targetFrequency; // 每次执行的间隔时间（毫秒）
+
+      let lastTime = performance.now();
+
+      function executeChip8() {
+        const now = performance.now();
+        const deltaTime = now - lastTime;
+        lastTime = now;
+
+        const cyclesPerFrame = Math.floor(deltaTime / interval);
+
+        for (let i = 0; i < cyclesPerFrame; i++) {
+          chip8.cycle();
+        }
       }
 
-      document.getElementById("fileInput").addEventListener("change", event => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            const arrayBuffer = e.target.result;
-            const romBuffer = new Uint8Array(arrayBuffer);
-            chip8.loadProgram(romBuffer);
-            // 启动模拟器主循环
-            requestAnimationFrame(loop);
-          };
-          reader.readAsArrayBuffer(file);
-        }
-      });
+      function render() {
+        chip8.draw();
+        requestAnimationFrame(render);
+      }
+
+      document
+        .getElementById("fileInput")
+        .addEventListener("change", (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const arrayBuffer = e.target.result;
+              const romBuffer = new Uint8Array(arrayBuffer);
+              chip8.loadProgram(romBuffer);
+              // 启动模拟器主循环
+              setInterval(executeChip8, interval);
+              requestAnimationFrame(render);
+            };
+            reader.readAsArrayBuffer(file);
+          }
+        });
     </script>
   </body>
 </html>
