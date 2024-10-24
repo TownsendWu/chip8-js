@@ -395,39 +395,48 @@ class Chip8 {
   }
 }
 
-const canvas = document.getElementById("chip8Canvas");
-const scale = 10;
+function main() {
+  const canvas = document.getElementById("chip8Canvas");
+  const scale = 10;
+  const chip8 = new Chip8(canvas, scale);
 
-const chip8 = new Chip8(canvas, scale);
+  const targetFrequency = 500; // 500Hz
+  const interval = 1000 / targetFrequency; // 每次执行的间隔时间（毫秒）
 
-// prettier-ignore
-const program = [
-//   0x00, 0xe0,
-  0x60, 0x00, // LD V0, 0x00   ; Set V0 to 0 (X coordinate)
-  0x61, 0x00, // LD V1, 0x00   ; Set V1 to 0 (Y coordinate)
-  0xA2, 0x0A, // LD I, 0x20A   ; Set I to the memory address 0x20A (where the font set is stored)
-  0xD0, 0x15, // DRW V0, V1, 5 ; Draw 5-byte sprite at (V0, V1)
-  0x12, 0x00, // JP 0x200      ; Jump to the start of the program (infinite loop)
-  0xF0, 0x90, 0xF0, 0x90, 0x90 // Font data for character "A"
-];
+  let lastTime = performance.now();
 
-function loop() {
-  chip8.cycle();
-  chip8.draw();
-  requestAnimationFrame(loop);
+  function executeChip8() {
+    const now = performance.now();
+    const deltaTime = now - lastTime;
+    lastTime = now;
+
+    const cyclesPerFrame = Math.floor(deltaTime / interval);
+
+    for (let i = 0; i < cyclesPerFrame; i++) {
+      chip8.cycle();
+    }
+  }
+
+  function render() {
+    chip8.draw();
+    requestAnimationFrame(render);
+  }
+
+  document.getElementById("fileInput").addEventListener("change", event => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const arrayBuffer = e.target.result;
+        const romBuffer = new Uint8Array(arrayBuffer);
+        chip8.loadProgram(romBuffer);
+        // 启动模拟器主循环
+        setInterval(executeChip8, interval);
+        requestAnimationFrame(render);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  });
 }
 
-document.getElementById("fileInput").addEventListener("change", event => {
-  const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const arrayBuffer = e.target.result;
-      const romBuffer = new Uint8Array(arrayBuffer);
-      chip8.loadProgram(romBuffer);
-      // 启动模拟器主循环
-      requestAnimationFrame(loop);
-    };
-    reader.readAsArrayBuffer(file);
-  }
-});
+main()
